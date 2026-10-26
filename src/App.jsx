@@ -1,10 +1,15 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState, lazy, Suspense } from 'react';
 import { ArrowUpRight, ArrowRight, ArrowDown, ArrowUp, Wind, Sun, Moon, Globe2, Menu, X, Play, Pause, Check, Download, ShieldCheck, Layers3, Leaf, MapPin, Cpu, Factory, UtensilsCrossed, CircleCheck, ExternalLink, Plus } from 'lucide-react';
 import { content, languages, formatPrice } from './content.js';
 import { ReactorArt, HybridArt, SensorArt } from './EquipmentArt.jsx';
 import { projectAuthor } from './project.js';
+import Engineering from './Engineering.jsx';
+import FreshAirEntrance from './FreshAirEntrance.jsx';
+const AgenticFactory3D = lazy(() => import('@/components/ui/agentic-factory-3d'));
+const SculptureHero = lazy(() => import('@/components/ui/liquid-sculpture-hero'));
 
 const navigation = [['technology', '#technology'], ['equipment', '#equipment'], ['business', '#business'], ['specs', '#specifications'], ['about', '#about']];
+const viewerLabels = { ru: ['3D-модель', 'Прототип', 'От идеи к работающему прототипу', 'ИНЖЕНЕРИЯ ЧИСТОГО ВОЗДУХА'], en: ['3D model', 'Prototype', 'From an idea to a working prototype', 'CLEAN AIR, ENGINEERED'], uz: ['3D model', 'Prototip', 'G‘oyadan ishlaydigan prototipgacha', 'TOZA HAVO MUHANDISLIGI'] };
 const motionLabels = { ru: ['Приостановить анимацию', 'Включить анимацию'], en: ['Pause animations', 'Play animations'], uz: ['Animatsiyani to‘xtatish', 'Animatsiyani yoqish'] };
 
 function savePreference(key, value) {
@@ -79,34 +84,44 @@ function Header({ t, language, setLanguage, theme, setTheme }) {
 }
 
 function Hero({ t, language, openVideo, paused, setPaused }) {
-  return <section className="hero container" id="home">
-    <div className="hero-content">
-      <h1><span>{t.hero.line1}</span><span className="hero-accent">{t.hero.line2}<svg viewBox="0 0 440 15" preserveAspectRatio="none" aria-hidden="true"><path d="M3 11C123 0 304-1 436 9" /></svg></span></h1>
-      <p className="hero-description">{t.hero.description}</p>
-      <div className="hero-actions"><a href="#technology" className="button button-dark">{t.hero.primary}<ArrowUpRight size={19} /></a><button className="video-button" onClick={openVideo}><span className="play-circle"><Play size={13} fill="currentColor" /></span>{t.hero.secondary}</button></div>
-      <p className="hero-note"><Leaf size={15} />{t.hero.note}</p>
+  const [view, setView] = useState('model');
+  const labels = viewerLabels[language];
+  return <div className="hero-backdrop-wrap">
+    <div className="hero-backdrop" aria-hidden="true">
+      <img className="hero-landscape" src={`${import.meta.env.BASE_URL}images/greenhouse-dawn.webp`} alt="" width="1660" height="948" fetchPriority="high" />
+      <div className="hero-mist hero-mist-far" /><div className="hero-mist hero-mist-near" />
+      <div className="hero-backdrop-shade" />
     </div>
-    <div className="hero-visual">
-      <div className="visual-grid" />
-      <div className="visual-topline"><span><span className="live-dot" />{t.hero.graphicLabel}</span><span className="mono">PL—01 / 2026</span></div>
-      <div className="hero-art"><ReactorArt /></div>
-      <div className="air-label air-label-in"><span className="air-label-icon"><Wind size={16} /></span><span>{t.hero.incomingAir}</span><span className="air-label-line" /></div>
-      <div className="air-label air-label-out"><span className="air-label-line" /><span>{t.hero.cleanAir}</span><ArrowUpRight size={15} /></div>
-      <div className="efficiency-badge"><span className="efficiency-icon"><CircleCheck size={22} strokeWidth={1.4} /></span><div><span>{t.hero.efficiency}</span><strong>{t.hero.efficiencyValue}</strong></div><svg className="mini-chart" viewBox="0 0 55 35" aria-hidden="true"><path d="M2 30 13 22l9 3L33 9l8 5L53 2" /></svg></div>
-      <div className="visual-bottomline"><div><span className="mono">GL-JD-6A</span><span>{t.hero.systemLabel}</span></div><button className="icon-button motion-toggle" aria-label={motionLabels[language][paused ? 1 : 0]} onClick={() => setPaused(!paused)}>{paused ? <Play size={14} /> : <Pause size={14} />}</button></div>
-    </div>
-    <a className="hero-scroll" href="#overview"><span className="scroll-line" />{t.hero.scroll}<ArrowDown size={14} /></a>
-  </section>;
+    <section className="hero container" id="home">
+      <div className="hero-content">
+        <p className="hero-kicker"><span className="live-dot" />{t.hero.eyebrow}</p>
+        <h1><span>{t.hero.line1}</span><span className="hero-accent">{t.hero.line2}</span></h1>
+        <p className="hero-description">{t.hero.description}</p>
+        <div className="hero-actions"><a href="#technology" className="button button-dark">{t.hero.primary}<ArrowUpRight size={19} /></a><button className="video-button" onClick={openVideo}><span className="play-circle"><Play size={13} fill="currentColor" /></span>{t.hero.secondary}</button></div>
+        <p className="hero-note"><Leaf size={16} />{t.hero.note}</p>
+      </div>
+      <div className="hero-visual">
+        <div className="viewer-heading"><span className="viewer-heading-label"><span className="live-dot" />PLAZION / LAB</span><span className="mono">01 — 2026</span></div>
+        <div className="viewer-switch" role="group" aria-label={labels[2]}>{['model', 'photo'].map((item, i) => <button key={item} onClick={() => setView(item)} aria-pressed={view === item}>{labels[i]}</button>)}</div>
+        <div className="visual-grid" />
+        <div className="hero-art">
+          {view === 'model' ? <Suspense fallback={<ReactorArt />}><AgenticFactory3D paused={paused} language={language} onPauseChange={setPaused} /></Suspense> : <img className="prototype-photo" src={`${import.meta.env.BASE_URL}images/plazion-prototype.webp`} alt={labels[2]} width="1024" height="773" />}
+        </div>
+        <div className="viewer-footer"><div><span className="mono">NTP + ESP</span><p>{t.hero.graphicLabel}</p></div><div className="viewer-motion"><span>{view === 'model' ? labels[0] : labels[1]}</span><button className="icon-button motion-toggle" aria-label={motionLabels[language][paused ? 1 : 0]} onClick={() => setPaused(!paused)}>{paused ? <Play size={14} /> : <Pause size={14} />}</button></div></div>
+      </div>
+      <div className="hero-baseline"><a className="hero-scroll" href="#overview"><span className="scroll-line" />{t.hero.scroll}<ArrowDown size={14} /></a><span className="hero-baseline-note mono">{labels[3]}<span>41°19′ N / 69°18′ E</span></span></div>
+    </section>
+  </div>;
 }
 
 function Stats({ t }) {
   return <div className="stats-wrap"><div className="stats container">{t.stats.map((stat, i) => <Reveal key={i} delay={i * 70} className="stat"><div className="stat-number">{stat.value}<span>{stat.suffix}</span></div><p>{stat.label}</p></Reveal>)}</div></div>;
 }
 
-function Overview({ t }) {
+function Overview({ t, language }) {
   const icons = [ShieldCheck, Leaf, ShieldCheck];
   return <section className="overview section-space container" id="overview">
-    <Reveal className="overview-heading"><Eyebrow>{t.intro.eyebrow}</Eyebrow><h2>{t.intro.title}</h2><p className="section-description">{t.intro.description}</p><div className="application-tags">{t.intro.applications.map((label, i) => { const Icon = [UtensilsCrossed, Factory, Cpu][i]; return <span key={label}><Icon size={15} strokeWidth={1.4} />{label}</span>; })}</div></Reveal>
+    <Reveal className="overview-heading"><Eyebrow>{t.intro.eyebrow}</Eyebrow><h2>{t.intro.title}</h2><p className="section-description">{t.intro.description}</p><div className="application-tags">{t.intro.applications.map((label, i) => { const Icon = [UtensilsCrossed, Factory, Cpu][i]; return <span key={label}><Icon size={15} strokeWidth={1.4} />{label}</span>; })}</div><figure className="overview-photo"><img src={`${import.meta.env.BASE_URL}images/plazion-prototype.webp`} alt={viewerLabels[language][2]} width="1024" height="773" loading="lazy" /><figcaption><span className="live-dot" />{viewerLabels[language][2]}<ArrowUpRight size={17} /></figcaption></figure></Reveal>
     <div className="feature-list">{t.intro.features.map((feature, i) => { const Icon = icons[i]; return <Reveal className="feature-row" key={i} delay={i * 70}><span className="feature-icon"><Icon size={23} strokeWidth={1.4} /></span><div><h3>{feature.title}</h3><p>{feature.description}</p></div><span className="feature-index">0{i + 1}</span></Reveal>; })}</div>
   </section>;
 }
@@ -179,7 +194,7 @@ function Contact({ t }) {
   return <section className="contact section-space container" id="about">
     <Reveal className="contact-heading" id="contact"><Eyebrow>{t.contact.eyebrow}</Eyebrow><h2>{t.contact.title}<span className="contact-asterisk" aria-hidden="true">✳</span></h2><p className="section-description">{t.contact.description}</p><a className="contact-email" href={`mailto:${projectAuthor.email}`}>{projectAuthor.email}<ArrowUpRight size={22} /></a></Reveal>
     <Reveal className="contact-details"><div className="person"><span className="person-avatar">BE</span><div><p>{t.contact.authorLabel}</p><h3>{projectAuthor.name}</h3></div></div><div className="person"><span className="person-avatar">ББ</span><div><p>{t.contact.supervisorLabel}</p><h3>{t.contact.supervisor}</h3></div></div><div className="contact-address"><MapPin size={20} strokeWidth={1.4} /><div><p>{t.contact.locationLabel}</p><h3>{t.contact.address}</h3><a href="https://www.google.com/maps/search/?api=1&query=39+Kary-Niyazi+Street+Tashkent" target="_blank" rel="noreferrer">{t.contact.map}<ArrowUpRight size={14} /></a></div></div></Reveal>
-    <Reveal className="partners"><span className="partners-label">{t.ui.partners}</span><div>{t.contact.partnerNames.map((name, i) => { const Icon = [Layers3, Leaf, Factory][i]; return <span key={name} className="partner"><Icon size={24} strokeWidth={1.4} /><span>{name}</span></span>; })}</div></Reveal>
+    <Reveal className="partners"><span className="partners-label">{t.ui.partners}</span><div>{t.contact.partnerNames.map((name, i) => { const Icon = [Layers3, Leaf, Factory][i]; return <span key={name} className="partner"><>{i === 0 ? <img className="university-emblem" src={`${import.meta.env.BASE_URL}images/tiiame-emblem.png`} alt="" width="44" height="67" loading="lazy" /> : <Icon size={24} strokeWidth={1.4} />}</><span>{name}</span></span>; })}</div></Reveal>
   </section>;
 }
 
@@ -244,13 +259,16 @@ export default function App() {
   };
 
   return <>
+    <FreshAirEntrance language={language} paused={paused} />
     <a className="skip-link" href="#main-content">{t.ui.skip}</a>
     <Header t={t} language={language} setLanguage={setLanguage} theme={theme} setTheme={setTheme} />
     <main id="main-content">
       <Hero t={t} language={language} openVideo={() => setVideoOpen(true)} paused={paused} setPaused={setPaused} />
       <Stats t={t} />
-      <Overview t={t} />
+      <Overview t={t} language={language} />
+      <Suspense fallback={<div className="air-experience-placeholder" />}><SculptureHero language={language} paused={paused} onPauseChange={setPaused} /></Suspense>
       <Technology t={t} />
+      <Engineering language={language} />
       <Catalog t={t} language={language} openProduct={setProductId} />
       <Business t={t} />
       <Specifications t={t} onDownload={downloadSpecs} />

@@ -1,6 +1,6 @@
 # PLazion
 
-A responsive website for PLazion, an electrostatic air purification project by **Behzod Ergashev**. Built with React, Vite, JavaScript and CSS. Prepared for GitHub and Cloudflare Pages.
+A responsive website for PLazion, an electrostatic air purification project by **Behzod Ergashev**. Built with React, Vite, TypeScript components and Tailwind CSS. Prepared for GitHub and Cloudflare Pages.
 
 **Contact:** [behzodergasov5@gmail.com](mailto:behzodergasov5@gmail.com)
 
@@ -22,6 +22,7 @@ On Windows PowerShell, use `npm.cmd` instead of `npm` if PowerShell blocks the `
 ## Production build
 
 ```bash
+npm run typecheck
 npm test
 npm run build
 npm run preview
@@ -102,6 +103,44 @@ The supplied `plazion_ru.html` is retained as an original reference. The live we
 
 Specifications, partners and the demonstration video come from the supplied Russian project page. Author attribution, equipment prices (30,000,000 / 6,000,000 / 10,000,000 UZS) and the US$25 annual B2B subscription reflect the owner's updated instructions. The B2B button opens an email inquiry; it does not process payments or create a customer account. Product graphics are concept illustrations, labelled accordingly, rather than photographs of the actual equipment. Confirm product claims and prices when updating the website.
 
-The page uses Google Fonts for Manrope and falls back to system fonts when unavailable. The demonstration contacts YouTube only after the visitor opens it. The map opens Google Maps. Email links open the visitor's mail application; no messages are sent automatically.
+Golos Text is hosted locally with its OFL license, with system fonts as a fallback. The demonstration contacts YouTube only after the visitor opens it. The map opens Google Maps. Email links open the visitor's mail application; no messages are sent automatically.
 
 Icons are from [Lucide](https://lucide.dev/) (ISC license). React and Vite are distributed under the MIT license. No project license is assumed; the repository owner can add one if desired.
+
+
+## TypeScript, Tailwind and shadcn components
+
+The existing Vite app now supports TypeScript incrementally: existing JSX stays in `src/`, and new typed components live in `/components/ui`. The `@/` alias resolves to the repository root in both TypeScript and Vite. Creating `/components/ui` gives shared UI components one predictable import path and lets the shadcn CLI place new components consistently without mixing them with page content.
+
+- UI components: `components/ui/`
+- shadcn configuration: `components.json`
+- Shared class-name utility: `lib/utils.ts`
+- Tailwind v4 entry and shadcn theme mappings: `src/tailwind.css`
+- Existing site styles: `src/styles.css` and `src/design.css`
+- Local fonts: `src/fonts.css` and `src/assets/fonts/`
+
+Setup is already present in the working source; after `npm ci`, run `npm run typecheck` and `npm run dev` with the supported Node version. Tailwind uses `@tailwindcss/vite`; its Preflight reset is deliberately omitted to preserve the existing page styles.
+
+To add another shadcn component using the configured paths:
+
+```bash
+npx shadcn@latest add button
+```
+
+For a separate new Vite project, the initial setup is `npx shadcn@latest init --template vite`. Existing projects can follow the official [shadcn Vite setup](https://ui.shadcn.com/docs/installation/vite) and [Tailwind Vite integration](https://tailwindcss.com/docs/installation/using-vite). Do not reinitialize this configured project just to use the included components.
+
+### PLAZION interactive components
+
+`components/ui/agentic-factory-3d.tsx` adapts the supplied Agentic Factory interaction pattern to the actual PLAZION prototype. It includes assembled, cutaway, separated-station and fresh-air views, five camera presets, station selection, a GPU particle plume and a real-prototype fallback. It is mounted in the main hero.
+
+`components/ui/liquid-sculpture-hero.tsx` adapts the supplied liquid-particle idea into a dirty-air-to-clean-air section. GPU vertex shaders animate the particles; pointer movement stirs them and they settle as the wake fades. It uses procedural airflow rather than the reference component's remote sculpture images. This is a conceptual visualization, not a measured fluid simulation. The two source examples were adapted for PLAZION rather than copied as unrelated video-production and sculpture demos.
+
+Both components support Russian, English and Uzbek, pause controls, reduced motion, offscreen suspension, WebGL fallback, responsive sizing and resource cleanup. `components/ui/demo.tsx` exports standalone examples. The page uses React lazy imports so Three.js is loaded separately.
+
+```tsx
+import AgenticFactory3D from '@/components/ui/agentic-factory-3d'
+import SculptureHero from '@/components/ui/liquid-sculpture-hero'
+
+<AgenticFactory3D height={640} language="en" />
+<SculptureHero height={550} language="en" />
+```
