@@ -8,7 +8,7 @@ $ErrorActionPreference = 'Stop'
 $projectRoot = Split-Path -Parent $PSScriptRoot
 $sourceItems = @(
     '.github', '.gitignore', '.node-version', 'README.md', 'index.html',
-    'package.json', 'package-lock.json', 'vite.config.js', 'tsconfig.json', 'components.json',
+    'package.json', 'package-lock.json', 'vite.config.js', 'wrangler.jsonc', 'tsconfig.json', 'components.json',
     'components', 'lib',
     'src', 'public', 'tests', 'scripts', 'plazion_ru.html'
 )

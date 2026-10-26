@@ -1,6 +1,6 @@
 # PLazion
 
-A responsive website for PLazion, an electrostatic air purification project by **Behzod Ergashev**. Built with React, Vite, TypeScript components and Tailwind CSS. Prepared for GitHub and Cloudflare Pages.
+A responsive website for PLazion, an electrostatic air purification project by **Behzod Ergashev**. Built with React, Vite, TypeScript components and Tailwind CSS. Prepared for GitHub, Cloudflare Workers static assets and Cloudflare Pages.
 
 **Contact:** [behzodergasov5@gmail.com](mailto:behzodergasov5@gmail.com)
 
@@ -30,7 +30,39 @@ npm run preview
 
 Vite writes the production website to `dist/`. The preview command serves it at **http://localhost:4173**. Use a web server instead of opening `index.html` directly from the filesystem.
 
-## Deploy to Cloudflare Pages
+## Deploy to Cloudflare Workers
+
+For a Cloudflare project with separate build and deploy commands, use these settings in **Workers & Pages → your Worker → Settings → Build**:
+
+| Setting | Value |
+| --- | --- |
+| Production branch | `main` |
+| Root directory | Repository root |
+| Build command | `npm run build` |
+| Deploy command | `npx wrangler deploy --config wrangler.jsonc` |
+| Node.js version | `24`, selected by `.node-version`; set `NODE_VERSION=24` if needed |
+
+`wrangler.jsonc` deploys the built `dist/` directory as static assets. Its `name` is `plazion`; if your existing Worker has another name, change this field to match it. Keep the custom domain attached to the Worker serving the site.
+
+If deployment reports **Error parsing file: /opt/buildhome/repo/vite.config.js**, check the deploy command for `--config vite.config.js` and replace it with `--config wrangler.jsonc`. Vite's JavaScript configuration is for the build step; Wrangler uses its own JSONC configuration for deployment.
+
+For deployment from your terminal after `npm ci`, run:
+
+```bash
+npx wrangler login
+npm run deploy
+```
+
+To validate deployment without publishing or Cloudflare credentials, run:
+
+```bash
+npm run build
+npx wrangler deploy --config wrangler.jsonc --dry-run
+```
+
+GitHub Actions runs this dry run after the build. See [Cloudflare static assets](https://developers.cloudflare.com/workers/static-assets/) and [Workers build settings](https://developers.cloudflare.com/workers/ci-cd/builds/configuration/).
+
+## Push source to GitHub
 
 To publish this local folder to the existing GitHub repository from Windows PowerShell:
 
@@ -45,6 +77,10 @@ The script does not use the source folder's `.git` directory. If direct Git comm
 ```powershell
 git config --global --add safe.directory C:/Users/Arslan_default/Desktop/Behzod
 ```
+
+## Deploy to Cloudflare Pages
+
+For a Pages project, use its Git integration and output-directory settings:
 
 1. Push the project to [saintcrimes/plazion](https://github.com/saintcrimes/plazion) on the `main` branch.
 2. In the Cloudflare dashboard, open **Workers & Pages → Create application → Pages → Import an existing Git repository**. Connect GitHub and select `saintcrimes/plazion`.
